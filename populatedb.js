@@ -43,8 +43,8 @@ async function genreCreate(name) {
   console.log(`Added genre: ${name}`);
 }
 
-async function authorCreate(first_name, family_name, d_birth, d_death) {
-  authordetail = { first_name: first_name, family_name: family_name };
+async function authorCreate(first_name, last_name, d_birth, d_death) {
+  authordetail = { first_name: first_name, last_name: last_name };
   if (d_birth != false) authordetail.date_of_birth = d_birth;
   if (d_death != false) authordetail.date_of_death = d_death;
 
@@ -52,7 +52,7 @@ async function authorCreate(first_name, family_name, d_birth, d_death) {
 
   await author.save();
   authors.push(author);
-  console.log(`Added author: ${first_name} ${family_name}`);
+  console.log(`Added author: ${first_name} ${last_name}`);
 }
 
 async function bookCreate(title, summary, isbn, author, genre) {
