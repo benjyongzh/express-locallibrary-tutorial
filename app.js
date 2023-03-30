@@ -17,8 +17,6 @@ const { config } = require("dotenv");
 config();
 
 const mongoDB = process.env.DATABASE;
-// const mongoDB =
-//   "mongodb+srv://admin:MNBNVCXz1!@cluster0.lvdficv.mongodb.net/local_library?retryWrites=true&w=majority";
 
 mainModule().catch((err) => console.log(err));
 async function main() {
