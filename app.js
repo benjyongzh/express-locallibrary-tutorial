@@ -14,12 +14,12 @@ var app = express();
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 
-const { config } = require("dotenv");
-config();
-
+//set up environment variables
+require("dotenv").config();
 const mongoDB = process.env.DATABASE_URL;
 
 main().catch((err) => console.log(err));
+
 async function main() {
   await mongoose.connect(mongoDB);
 }
