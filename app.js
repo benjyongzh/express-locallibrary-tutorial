@@ -16,7 +16,7 @@ mongoose.set("strictQuery", false);
 
 //set up environment variables
 require("dotenv").config();
-const mongoDB = process.env.DATABASE_URL;
+const mongoDB = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.lvdficv.mongodb.net/local_library?retryWrites=true&w=majority`;
 
 main().catch((err) => console.log(err));
 
