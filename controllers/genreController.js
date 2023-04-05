@@ -1,6 +1,7 @@
 const Genre = require("../models/genre");
 const Book = require("../models/book");
 const async = require("async");
+const mongoose = require("mongoose");
 
 // Display list of all Genre.
 exports.genre_list = (req, res, next) => {
@@ -20,6 +21,7 @@ exports.genre_list = (req, res, next) => {
 
 // Display detail page for a specific Genre.
 exports.genre_detail = (req, res, next) => {
+  const id = mongoose.Types.ObjectId(req.params.id);
   async.parallel(
     {
       genre(callback) {
