@@ -69,7 +69,7 @@ exports.genre_create_post = [
     //extract the validation errors from a req
     const errors = validationResult(req);
 
-    //create a genre object with the scaped and trimmed data
+    //create a genre object with the escaped and trimmed data
     const genre = new Genre({ name: req.body.name });
 
     if (!errors.isEmpty()) {
