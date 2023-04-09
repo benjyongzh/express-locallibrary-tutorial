@@ -1,5 +1,6 @@
 const Author = require("../models/author");
 const Book = require("../models/book");
+const { body, validationResult } = require("express-validator");
 
 const async = require("async");
 
@@ -50,14 +51,72 @@ exports.author_detail = (req, res, next) => {
 };
 
 //display create form for author, on GET
-exports.author_create_get = (req, res) => {
-  res.send("NOT IMPLEMENTED: Author create GET");
+exports.author_create_get = (req, res, next) => {
+  res.render("author_form", { title: "Create Author" });
 };
 
 //handle for author create POST form
-exports.author_create_post = (req, res) => {
-  res.send("NOT IMPLEMENTED: Author create POST");
-};
+exports.author_create_post = [
+  //validate and sanitize field
+  body("first_name")
+    .trim()
+    .isLength({ min: 1 })
+    .escape()
+    .withMessage("First name must be specified.")
+    .isAlphanumeric()
+    .withMessage("First name has non-alphanumeric characters."),
+
+  body("last_name")
+    .trim()
+    .isLength({ min: 1 })
+    .escape()
+    .withMessage("First name must be specified.")
+    .isAlphanumeric()
+    .withMessage("First name has non-alphanumeric characters."),
+
+  body("date_of_birth", "Invalid date of birth")
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .toDate(),
+
+  body("date_of_death", "Invalid date of death")
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .toDate(),
+
+  //process request after validation and sanitization
+  (req, res, next) => {
+    //extract the validation errors from a request
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      //there are errors. render form again with sanitized values and error messages
+      res.render("author_form", {
+        title: "Create Author",
+        author: req.body,
+        errors: errors.array(),
+      });
+      return;
+    }
+
+    //date is valid, render author object with escaped and  trimmed data
+    const author = new Author({
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      date_of_birth: req.body.date_of_birth,
+      date_of_death: req.body.date_of_death,
+    });
+
+    author.save((err) => {
+      if (err) {
+        return next(err);
+      }
+
+      //success. render author's page
+      res.render(author.url);
+    });
+  },
+];
 
 //display delete form for author, on GET
 exports.author_delete_get = (req, res) => {
