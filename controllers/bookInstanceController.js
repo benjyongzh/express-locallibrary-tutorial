@@ -56,7 +56,7 @@ exports.bookinstance_create_get = (req, res) => {
 // Handle BookInstance create on POST.
 exports.bookinstance_create_post = [
   //validate and sanitize
-  body("book", "Book must be speciffied").trim().isLength({ min: 1 }).escape(),
+  body("book", "Book must be specified").trim().isLength({ min: 1 }).escape(),
   body("imprint", "Imprint must be specified")
     .trim()
     .isLength({ min: 1 })
