@@ -8,7 +8,21 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var catalogRouter = require("./routes/catalog");
 
+//middleware for production
+const compression = require("compression");
+const helmet = require("helmet");
+const RateLimit = require("express-rate-limit");
+const limiter = RateLimit({
+  windowMs: 1 * 60 * 1000, //1minute
+  max: 20,
+});
+
 var app = express();
+
+//middleware
+app.use(compression());
+app.use(helmet());
+app.use(limiter);
 
 //set up mongoose connection
 const mongoose = require("mongoose");
