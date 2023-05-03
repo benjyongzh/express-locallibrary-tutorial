@@ -1,61 +1,50 @@
 const BookInstance = require("../models/bookinstance");
 const { body, validationResult } = require("express-validator");
 const Book = require("../models/book");
+const asyncHandler = require("express-async-handler");
 
 // Display list of all BookInstances.
-exports.bookinstance_list = (req, res, next) => {
-  BookInstance.find()
-    .populate("book")
-    .exec(function (err, list_bookinstances) {
-      if (err) {
-        return next(err);
-      }
-      //success
-      res.render("bookinstance_list", {
-        title: "Book InstanceList",
-        bookinstance_list: list_bookinstances,
-      });
-    });
-};
+exports.bookinstance_list = asyncHandler(async (req, res, next) => {
+  const allBookInstances = await BookInstance.find().populate("book").exec();
+
+  res.render("bookinstance_list", {
+    title: "Book Instance List",
+    bookinstance_list: allBookInstances,
+  });
+});
 
 // Display detail page for a specific BookInstance.
-exports.bookinstance_detail = (req, res, next) => {
-  BookInstance.findById(req.params.id)
+exports.bookinstance_detail = asyncHandler(async (req, res, next) => {
+  const bookInstance = await BookInstance.findById(req.params.id)
     .populate("book")
-    .exec((err, bookinstance) => {
-      if (err) {
-        return next(err);
-      }
-      if (bookinstance == null) {
-        err = new Error("Book copy not found");
-        err.status = 404;
-        return next(err);
-      }
-      //success
-      res.render("bookinstance_detail", {
-        title: `Copy: ${bookinstance.book.title}`,
-        bookinstance,
-      });
-    });
-};
+    .exec();
+
+  if (bookInstance === null) {
+    // No results.
+    const err = new Error("Book copy not found");
+    err.status = 404;
+    return next(err);
+  }
+
+  res.render("bookinstance_detail", {
+    title: "Book:",
+    bookinstance: bookInstance,
+  });
+});
 
 // Display BookInstance create form on GET.
-exports.bookinstance_create_get = (req, res) => {
-  Book.find({}, "title").exec((err, books) => {
-    if (err) {
-      return next(err);
-    }
-    //success
-    res.render("bookinstance_form", {
-      title: "Create BookInstance",
-      book_list: books,
-    });
+exports.bookinstance_create_get = asyncHandler(async (req, res, next) => {
+  const allBooks = await Book.find({}, "title").exec();
+
+  res.render("bookinstance_form", {
+    title: "Create BookInstance",
+    book_list: allBooks,
   });
-};
+});
 
 // Handle BookInstance create on POST.
 exports.bookinstance_create_post = [
-  //validate and sanitize
+  // Validate and sanitize fields.
   body("book", "Book must be specified").trim().isLength({ min: 1 }).escape(),
   body("imprint", "Imprint must be specified")
     .trim()
@@ -63,17 +52,17 @@ exports.bookinstance_create_post = [
     .escape(),
   body("status").escape(),
   body("due_back", "Invalid date")
-    .optional({ checkfalsy: true })
+    .optional({ checkFalsy: true })
     .isISO8601()
     .toDate(),
 
-  //process request after validation and sanitization
-  (req, res, next) => {
-    //extract errors
+  // Process request after validation and sanitization.
+  asyncHandler(async (req, res, next) => {
+    // Extract the validation errors from a request.
     const errors = validationResult(req);
 
-    //crea BookInstance object
-    const bookinstance = new BookInstance({
+    // Create a BookInstance object with escaped and trimmed data.
+    const bookInstance = new BookInstance({
       book: req.body.book,
       imprint: req.body.imprint,
       status: req.body.status,
@@ -81,34 +70,24 @@ exports.bookinstance_create_post = [
     });
 
     if (!errors.isEmpty()) {
-      //there are errors
-      Book.find({}, "title").exec(function (err, books) {
-        if (err) {
-          return next(err);
-        }
+      // There are errors.
+      // Render form again with sanitized values and error messages.
+      const allBooks = await Book.find({}, "title").exec();
 
-        //success
-        res.render("bookinstance_form", {
-          title: "Create BookInstance",
-          book_list: books,
-          selected_book: bookinstance.book._id,
-          errors: errors.array(),
-          bookinstance,
-        });
+      res.render("bookinstance_form", {
+        title: "Create BookInstance",
+        book_list: allBooks,
+        selected_book: bookInstance.book._id,
+        errors: errors.array(),
+        bookinstance: bookInstance,
       });
       return;
+    } else {
+      // Data from form is valid
+      await bookInstance.save();
+      res.redirect(bookInstance.url);
     }
-
-    //data from form is valid
-    bookinstance.save((err) => {
-      if (err) {
-        return next(err);
-      }
-
-      //success
-      res.redirect(bookinstance.url);
-    });
-  },
+  }),
 ];
 
 // Display BookInstance delete form on GET.
